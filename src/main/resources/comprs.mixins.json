@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.penguinedavid.comprs.common.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+  ],
+  "client": [
+    "ChatScreenMixin",
+    "ComparatorPlacementMixin",
+    "SlabPlacementMixin",
+    "RepeaterScrollMixin",
+    "RepeaterPlacementMixin",
+    "TitleScreenMixin",
+    "PauseScreenMixin",
+    "ScreenAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

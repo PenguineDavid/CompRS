@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "comprs",
+  "version": "${version}",
+  "name": "CompRS",
+  "description": "A mod to make CompRS easier on the fly.",
+  "authors": [
+    "penguinedavid"
+  ],
+  "contact": {
+    "homepage": "https://penguinedavid.github.io/"
+  },
+  "license": "MIT",
+  "icon": "assets/mycustommod/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "io.github.penguinedavid.comprs.common.main"
+    ]
+  },
+  "mixins": [
+    "comprs.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": "26.2"
+  }
+}
