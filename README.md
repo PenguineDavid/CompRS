@@ -376,4 +376,6 @@ gradlew test
 compRS is licensed under the GPLv3.
 
 - Developer site: <https://penguinedavid.github.io>
-- Source: <https://github.com/penguinedavid/compRS>
+- Source: <https://github.com/PenguineDavid/CompRS>
+
+NOT AN OFFICIAL MINECRAFT SERVICE. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.
