@@ -1,0 +1,56 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT'
+    id 'maven-publish'
+}
+
+version = '1.0.0'
+group = 'io.github.penguinedavid'
+
+base {
+    archivesName = 'compRS'
+}
+
+repositories {
+    maven { name = "Fabric"; url = "https://maven.fabricmc.net/" }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:26.2"
+
+    // No mappings dependency here on purpose: 26.2 ships unobfuscated, so the
+    // class names in the jar already ARE Mojang's official names (Minecraft,
+    // LocalPlayer, LivingEntity, ResourceLocation, etc). Loom actively refuses
+    // a mappings entry in this case ("Cannot use Mojang mappings in a
+    // non-obfuscated environment"), so the earlier version of this comment
+    // claiming a mappings line was missing was wrong, don't add one back.
+
+    implementation "net.fabricmc:fabric-loader:0.19.3"
+    implementation "net.fabricmc.fabric-api:fabric-api:0.152.1+26.2"
+
+    testImplementation platform('org.junit:junit-bom:5.13.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
