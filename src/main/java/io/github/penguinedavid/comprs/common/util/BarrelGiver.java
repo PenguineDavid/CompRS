@@ -29,41 +29,54 @@ public final class BarrelGiver {
     public record Result(boolean success, String message) {
     }
 
-    /** Replaces the selected hotbar slot with a signal barrel. Requires Creative mode. */
+    /** Gives the player a signal barrel in an empty inventory slot. Requires Creative mode. */
     public static Result give(int signal) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.gameMode == null
-            || minecraft.gameMode.getPlayerMode() != GameType.CREATIVE
-            || !minecraft.player.hasInfiniteMaterials()) {
-            return new Result(false, "Creative mode is required");
+        Result unavailable = checkCreativeMode(minecraft);
+        if (unavailable != null) {
+            return unavailable;
         }
 
         ItemStack barrel = new ItemStack(Items.BARREL);
         barrel.set(DataComponents.CUSTOM_NAME, Component.literal("signal " + signal));
         barrel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
         barrel.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(redstoneContents(signal)));
-        int selectedSlot = minecraft.player.getInventory().getSelectedSlot();
-        minecraft.player.getInventory().setItem(selectedSlot, barrel.copy());
-        minecraft.gameMode.handleCreativeModeItemAdd(barrel, 36 + selectedSlot);
-        return new Result(true, "Given signal " + signal + " barrel");
+        return giveIntoEmptySlot(minecraft, barrel, "Given signal " + signal + " barrel");
     }
 
     public static Result giveOverloaded(int signal) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.gameMode == null
-            || minecraft.gameMode.getPlayerMode() != GameType.CREATIVE
-            || !minecraft.player.hasInfiniteMaterials()) {
-            return new Result(false, "Creative mode is required");
+        Result unavailable = checkCreativeMode(minecraft);
+        if (unavailable != null) {
+            return unavailable;
         }
 
         ItemStack barrel = new ItemStack(Items.BARREL);
         barrel.set(DataComponents.CUSTOM_NAME, Component.literal("overloaded signal " + signal));
         barrel.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
         barrel.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(overloadedContents(signal)));
-        int selectedSlot = minecraft.player.getInventory().getSelectedSlot();
-        minecraft.player.getInventory().setItem(selectedSlot, barrel.copy());
-        minecraft.gameMode.handleCreativeModeItemAdd(barrel, 36 + selectedSlot);
-        return new Result(true, "Given overloaded signal " + signal + " barrel");
+        return giveIntoEmptySlot(minecraft, barrel, "Given overloaded signal " + signal + " barrel");
+    }
+
+    private static Result checkCreativeMode(Minecraft minecraft) {
+        if (minecraft.player == null || minecraft.gameMode == null
+            || minecraft.gameMode.getPlayerMode() != GameType.CREATIVE
+            || !minecraft.player.hasInfiniteMaterials()) {
+            return new Result(false, "Creative mode is required");
+        }
+        return null;
+    }
+
+    private static Result giveIntoEmptySlot(Minecraft minecraft, ItemStack item, String successMessage) {
+        int inventorySlot = minecraft.player.getInventory().getFreeSlot();
+        if (inventorySlot == -1) {
+            return new Result(false, "Inventory full");
+        }
+
+        minecraft.player.getInventory().setItem(inventorySlot, item.copy());
+        int menuSlot = inventorySlot < 9 ? inventorySlot + 36 : inventorySlot;
+        minecraft.gameMode.handleCreativeModeItemAdd(item, menuSlot);
+        return new Result(true, successMessage);
     }
 
     private static List<ItemStack> redstoneContents(int signal) {

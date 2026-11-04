@@ -146,7 +146,8 @@ public class ModCommands {
                 "Signal strength is a whole number from 1 to 15.",
                 "The barrel is filled with redstone so a comparator reads exactly that strength,",
                 "and is named \"signal <n>\" with an enchantment glint.",
-                "It replaces the item in your selected hotbar slot and requires Creative mode.",
+                "It is placed in the first empty inventory slot and requires Creative mode.",
+                "If your inventory has no empty slot, the command reports \"Inventory full\" and gives nothing.",
                 "For overloaded signals, use ,overloaded <signal> with a whole number from "
                     + BarrelSignal.OVERLOADED_MIN_SIGNAL + " to " + BarrelSignal.OVERLOADED_MAX_SIGNAL + ".",
                 "Every signal in that range is reachable with a 27-slot barrel.",

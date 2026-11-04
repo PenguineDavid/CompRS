@@ -191,13 +191,15 @@ Examples:
 - Signal strength is a whole number from 1 to 15.
 - Requires Creative mode.
 - The barrel is filled with redstone, named `signal <n>`, and has an enchantment glint so it is easy to spot.
-- It replaces whatever is in your selected hotbar slot.
+- It goes into the first empty slot in your inventory; your held item is left alone.
+- If there is no empty inventory slot, the command reports `Inventory full` and gives nothing.
 - The same feature is available as the **Barrel** panel in the GUI.
 
 For overloaded comparator signals, use `,overloaded <signal>`. This is part of the Barrel tool, not a separate GUI panel.
 
 - Signal strength must be a whole number from 16 to 897. Every signal in this range is reachable with a 27-slot barrel.
-- Requires Creative mode and replaces the item in your selected hotbar slot.
+- Requires Creative mode. The barrel goes into the first empty inventory slot without replacing your held item.
+- If your inventory is full, the command reports `Inventory full` and gives nothing.
 - The barrel contains oversized unstackable items and has an enchantment glint.
 - In the GUI, enter the signal in the **Overloaded signal generator** below the normal signal buttons and press **Give**. Invalid input is reported in red.
 
