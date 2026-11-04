@@ -1,8 +1,12 @@
 package io.github.penguinedavid.comprs.common;
 
 import io.github.penguinedavid.comprs.common.command.ModCommands;
+import io.github.penguinedavid.comprs.common.hud.SignalOverlay;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.minecraft.resources.Identifier;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,16 +22,21 @@ public class main implements ModInitializer {
     public static boolean autoSubtractComparators = false;
     public static boolean autoPlaceSlabsOnTop = false;
     public static boolean autoSetRepeaterDelay = false;
+    public static boolean showSignalOverlay = false;
     public static int repeaterDelay = 1;
     private static boolean settingsLoaded;
 
     private static final String AUTO_SUBTRACT_KEY = "autoSubtractComparators";
     private static final String AUTO_PLACE_SLABS_KEY = "autoPlaceSlabsOnTop";
     private static final String AUTO_SET_REPEATER_DELAY_KEY = "autoSetRepeaterDelay";
+    private static final String SHOW_SIGNAL_OVERLAY_KEY = "showSignalOverlay";
     private static final String REPEATER_DELAY_KEY = "repeaterDelay";
 
     @Override
     public void onInitialize() {
+        HudElementRegistry.attachElementAfter(VanillaHudElements.CROSSHAIR,
+            Identifier.fromNamespaceAndPath(MOD_ID, "signal_overlay"), SignalOverlay::render);
+
         // Opening a screen directly from inside chat-input handling gets immediately
         // undone by whatever closes the chat screen right after, since that runs in
         // the same tick. Deferring to the next client tick (same fix SeedcrackerX
@@ -52,11 +61,14 @@ public class main implements ModInitializer {
                     properties.getProperty(AUTO_PLACE_SLABS_KEY, "false"));
                 autoSetRepeaterDelay = Boolean.parseBoolean(
                     properties.getProperty(AUTO_SET_REPEATER_DELAY_KEY, "false"));
+                showSignalOverlay = Boolean.parseBoolean(
+                    properties.getProperty(SHOW_SIGNAL_OVERLAY_KEY, "false"));
                 repeaterDelay = clampRepeaterDelay(properties.getProperty(REPEATER_DELAY_KEY, "1"));
             } catch (IOException ignored) {
                 autoSubtractComparators = false;
                 autoPlaceSlabsOnTop = false;
                 autoSetRepeaterDelay = false;
+                showSignalOverlay = false;
                 repeaterDelay = 1;
             }
         }
@@ -69,6 +81,7 @@ public class main implements ModInitializer {
         properties.setProperty(AUTO_SUBTRACT_KEY, Boolean.toString(autoSubtractComparators));
         properties.setProperty(AUTO_PLACE_SLABS_KEY, Boolean.toString(autoPlaceSlabsOnTop));
         properties.setProperty(AUTO_SET_REPEATER_DELAY_KEY, Boolean.toString(autoSetRepeaterDelay));
+        properties.setProperty(SHOW_SIGNAL_OVERLAY_KEY, Boolean.toString(showSignalOverlay));
         properties.setProperty(REPEATER_DELAY_KEY, Integer.toString(repeaterDelay));
         try {
             Files.createDirectories(settingsPath.getParent());

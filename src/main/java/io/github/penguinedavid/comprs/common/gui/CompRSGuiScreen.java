@@ -4,6 +4,7 @@ import io.github.penguinedavid.comprs.common.command.BarrelGiver;
 import io.github.penguinedavid.comprs.common.command.ModCommands;
 import io.github.penguinedavid.comprs.common.main;
 import io.github.penguinedavid.comprs.common.util.BooleanAlgebra;
+import io.github.penguinedavid.comprs.common.util.BarrelSignal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -181,6 +182,7 @@ public class CompRSGuiScreen extends Screen {
     // Barrel panel state
     private String barrelStatus;
     private boolean barrelSuccess;
+    private EditBox overloadedSignalField;
 
     // Scrolling state
     private final List<Button> sidebarButtons = new ArrayList<>();
@@ -235,6 +237,9 @@ public class CompRSGuiScreen extends Screen {
     private void saveCurrentFieldValues() {
         for (int i = 0; i < specs.size(); i++) {
             SAVED_FIELD_VALUES.put(panel + ":" + specs.get(i).label(), fields.get(i).getValue());
+        }
+        if (panel.equals("barrel") && overloadedSignalField != null) {
+            SAVED_FIELD_VALUES.put("barrel:Overloaded signal", overloadedSignalField.getValue());
         }
     }
 
@@ -504,6 +509,16 @@ public class CompRSGuiScreen extends Screen {
                 .bounds(x, y, buttonWidth, FIELD_HEIGHT)
                 .build());
         }
+
+        int inputY = top + 3 * 28 + 39;
+        overloadedSignalField = new EditBox(this.font, MAIN_X, inputY, 100, FIELD_HEIGHT,
+            Component.literal("Overloaded signal"));
+        overloadedSignalField.setMaxLength(3);
+        overloadedSignalField.setValue(SAVED_FIELD_VALUES.getOrDefault("barrel:Overloaded signal", ""));
+        this.addRenderableWidget(overloadedSignalField);
+        this.addRenderableWidget(Button.builder(Component.literal("Give"), btn -> giveOverloadedBarrel())
+            .bounds(MAIN_X + 106, inputY, 60, FIELD_HEIGHT)
+            .build());
     }
 
     private void buildSettingsPanel() {
@@ -537,6 +552,16 @@ public class CompRSGuiScreen extends Screen {
                 })
             .bounds(MAIN_X, 142, 190, 20)
             .build());
+            this.addRenderableWidget(Button.builder(
+                    Component.literal("Show overloaded signal: "
+                        + (main.showSignalOverlay ? "ON" : "OFF")),
+                    btn -> {
+                        main.showSignalOverlay = !main.showSignalOverlay;
+                        main.saveSettings(Minecraft.getInstance().gameDirectory);
+                        Minecraft.getInstance().gui.setScreen(new CompRSGuiScreen("settings"));
+                    })
+                .bounds(MAIN_X, 188, 220, 20)
+                .build());
     }
 
     private void buildContactPanel() {
@@ -563,6 +588,18 @@ public class CompRSGuiScreen extends Screen {
         BarrelGiver.Result result = BarrelGiver.give(signal);
         barrelStatus = result.message();
         barrelSuccess = result.success();
+    }
+
+    private void giveOverloadedBarrel() {
+        try {
+            int signal = BarrelSignal.parseOverloaded(overloadedSignalField.getValue());
+            BarrelGiver.Result result = BarrelGiver.giveOverloaded(signal);
+            barrelStatus = result.message();
+            barrelSuccess = result.success();
+        } catch (BarrelSignal.BarrelSignalException e) {
+            barrelStatus = e.getMessage();
+            barrelSuccess = false;
+        }
     }
 
     private void runGenericCommand() {
@@ -868,9 +905,11 @@ public class CompRSGuiScreen extends Screen {
             y += 11;
         }
 
+        graphics.text(this.font, "Overloaded signal generator:", MAIN_X,
+            barrelButtonsTop() + 3 * 28 + 24, COLOR_WHITE, false);
+
         if (barrelStatus != null) {
-            // Three rows of buttons; the status line sits just under the last one.
-            int statusY = barrelButtonsTop() + 3 * 28 + 4;
+            int statusY = barrelButtonsTop() + 3 * 28 + 62;
             graphics.text(this.font, barrelStatus, MAIN_X, statusY, barrelSuccess ? COLOR_GREEN : COLOR_RED, false);
         }
     }
@@ -881,6 +920,7 @@ public class CompRSGuiScreen extends Screen {
         graphics.text(this.font, "New comparators are placed in subtract mode.", MAIN_X, 72, COLOR_GRAY, false);
         graphics.text(this.font, "Slabs always use the upper half of the target block.", MAIN_X, 118, COLOR_GRAY, false);
         graphics.text(this.font, "Hold Ctrl and scroll while holding a repeater to set its placement delay (1-4).", MAIN_X, 164, COLOR_GRAY, false);
+        graphics.text(this.font, "Show an overloaded comparator or barrel's signal above the crosshair.", MAIN_X, 218, COLOR_GRAY, false);
     }
 
     private void renderContact(GuiGraphicsExtractor graphics) {

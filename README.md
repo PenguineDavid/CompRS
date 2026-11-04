@@ -45,6 +45,7 @@ compRS is client-side only. It is not needed on the server, and it does not add 
 - Open chat and type `,help` to list every command. The comma is what tells compRS the line is a command.
 - Type `,compRS_GUI` to open the GUI, or click the **compRS** button in the top-left corner of the title screen or the pause menu.
 - Type `,barrel 7` in Creative mode to get a barrel that makes a comparator read signal strength 7.
+- Type `,overloaded 543` in Creative mode to get an overloaded-signal barrel for signal strength 543.
 
 ## Chat commands
 
@@ -61,7 +62,8 @@ Results appear in chat prefixed with `[CompRSHelper]`: green for results, red fo
 | [`,truth`](#truth) | Truth tables (GUI only) |
 | [`,delay`](#delay) | Convert between redstone ticks, game ticks, and milliseconds |
 | [`,negate`](#negate) | Two's-complement negation of a bit string |
-| [`,barrel`](#barrel) | Give yourself a barrel that outputs a chosen comparator signal |
+| [`,barrel`](#barrel) | Give yourself a normal or overloaded barrel for a chosen comparator signal |
+| [`,overloaded`](#barrel) | Give yourself an overloaded-signal barrel (16 to 897) |
 | [`,help`](#help) | List commands or show details for one |
 | [`,compRS_GUI`](#comprs_gui) | Open the GUI |
 
@@ -192,6 +194,21 @@ Examples:
 - It replaces whatever is in your selected hotbar slot.
 - The same feature is available as the **Barrel** panel in the GUI.
 
+For overloaded comparator signals, use `,overloaded <signal>`. This is part of the Barrel tool, not a separate GUI panel.
+
+- Signal strength must be a whole number from 16 to 897. Every signal in this range is reachable with a 27-slot barrel.
+- Requires Creative mode and replaces the item in your selected hotbar slot.
+- The barrel contains oversized unstackable items and has an enchantment glint.
+- In the GUI, enter the signal in the **Overloaded signal generator** below the normal signal buttons and press **Give**. Invalid input is reported in red.
+
+Examples:
+
+```
+,overloaded 16
+,overloaded 543
+,overloaded 897
+```
+
 Redstone needed in a barrel (27 slots) for each strength:
 
 | Signal | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
@@ -208,6 +225,7 @@ Each count is the minimum that reads that strength, and 15 is a completely full 
 
 - `,help` lists every command with a one-line description.
 - `,help <command>` shows full usage, supported syntax, and examples for that command (for example `,help conv`).
+- `,help barrel` documents both the normal barrel signals and the overloaded generator.
 
 ### compRS_GUI
 
@@ -233,8 +251,8 @@ The left sidebar switches between panels, and the main area on the right shows t
 | Delay | Number box with button rows for the From and To units |
 | Negate | Bits box |
 | Help | A button per command. Click one for its usage, description, and examples; click it again to collapse it. |
-| Barrel | Fifteen buttons, one per signal strength. The result of the last click is shown in green (success) or red (for example, not in Creative mode). |
-| Settings | The placement toggles described below |
+| Barrel | Fifteen buttons for normal signals, plus an overloaded signal input and **Give** button. Errors and results are shown in red or green. |
+| Settings | Placement helpers and the overloaded signal overlay toggle |
 | Contact | Links to the developer's site and the project's GitHub |
 
 ### How the panels behave
@@ -246,13 +264,14 @@ The left sidebar switches between panels, and the main area on the right shows t
 
 ## Placement helpers and settings
 
-Three optional helpers speed up common redstone building chores. All three are **off by default** and are toggled in the GUI under **Settings**.
+Optional settings speed up common redstone building chores and add an overloaded-signal readout. They are **off by default** and are toggled in the GUI under **Settings**.
 
 | Setting | What it does |
 |---|---|
 | Auto subtract comparators | After you place a comparator, compRS right-clicks it once so it ends up in subtract mode. |
 | Auto place slabs on top | Slabs are placed as top slabs, using the upper half of the block you are targeting. |
 | Auto set repeater delay | Lets you choose a delay from 1 to 4 and applies it to every repeater you place (see below). |
+| Show overloaded signal | When you look at a barrel or comparator with a signal above 15, shows `Signal: <signal>` above the crosshair. |
 
 ### Choosing the repeater delay
 
@@ -268,7 +287,7 @@ Settings are saved when you change them, in the game directory at:
 config/comprs/settings.txt
 ```
 
-It is a plain `key=value` properties file with these keys: `autoSubtractComparators`, `autoPlaceSlabsOnTop`, `autoSetRepeaterDelay`, and `repeaterDelay` (clamped to 1 to 4). A missing or unreadable file falls back to the defaults (all toggles off, delay 1).
+It is a plain `key=value` properties file with these keys: `autoSubtractComparators`, `autoPlaceSlabsOnTop`, `autoSetRepeaterDelay`, `showSignalOverlay`, and `repeaterDelay` (clamped to 1 to 4). A missing or unreadable file falls back to the defaults (all toggles off, delay 1).
 
 ## Using it on servers
 
@@ -303,6 +322,8 @@ src/main/java/io/github/penguinedavid/comprs/common/
   command/
     ModCommands.java         Command parsing, help text, and dispatch shared by chat and GUI
     BarrelGiver.java         Builds a signal barrel and gives it to the player
+  hud/
+    SignalOverlay.java       Displays targeted overloaded barrel/comparator output
   gui/
     CompRSGuiScreen.java     The GUI screen and all of its panels
   mixin/                     Hooks into Minecraft (table below)
@@ -329,6 +350,7 @@ src/test/java/...            JUnit 5 tests
 | `RepeaterScrollMixin` | `MouseHandler#onScroll` | Ctrl+scroll repeater delay selection |
 | `RepeaterPlacementMixin` | `MultiPlayerGameMode#useItemOn` | Applies the chosen delay to newly placed repeaters |
 | `ComparatorPlacementMixin` | `MultiPlayerGameMode#useItemOn` | Switches newly placed comparators to subtract mode |
+| `OverstackedItemStackTemplateMixin` | `ItemStackTemplate#validate` | Preserves compRS-marked overstacked items inside overloaded barrel data |
 | `SlabPlacementMixin` | `MultiPlayerGameMode#useItemOn` | Redirects slab placement to the upper half |
 | `TitleScreenMixin` | `TitleScreen#init` | Adds the **compRS** button |
 | `PauseScreenMixin` | `PauseScreen#init` | Adds the **compRS** button |

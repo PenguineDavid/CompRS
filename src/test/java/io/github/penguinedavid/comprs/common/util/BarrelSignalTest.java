@@ -63,4 +63,33 @@ class BarrelSignalTest {
         assertThrows(IllegalArgumentException.class, () -> BarrelSignal.redstoneItemCount(0));
         assertThrows(IllegalArgumentException.class, () -> BarrelSignal.redstoneItemCount(16));
     }
+
+    @Test
+    void overloadedSignalsAreReachableAcrossTheFullBarrelRange() {
+        for (int signal = BarrelSignal.OVERLOADED_MIN_SIGNAL;
+             signal <= BarrelSignal.OVERLOADED_MAX_SIGNAL; signal++) {
+            int items = BarrelSignal.overloadedItemCount(signal);
+            assertEquals(signal, BarrelSignal.overloadedComparatorSignal(items), "signal " + signal);
+            assertTrue(items <= BarrelSignal.BARREL_SLOTS * BarrelSignal.REDSTONE_STACK_SIZE);
+        }
+    }
+
+    @Test
+    void overloadedCountIsTheMinimumNeededForEachSignal() {
+        for (int signal = BarrelSignal.OVERLOADED_MIN_SIGNAL;
+             signal <= BarrelSignal.OVERLOADED_MAX_SIGNAL; signal++) {
+            int items = BarrelSignal.overloadedItemCount(signal);
+            assertEquals(signal - 1, BarrelSignal.overloadedComparatorSignal(items - 1),
+                "one fewer item should drop below signal " + signal);
+        }
+    }
+
+    @Test
+    void overloadedParsingAcceptsBoundsAndRejectsInvalidInput() {
+        assertEquals(16, BarrelSignal.parseOverloaded("16"));
+        assertEquals(897, BarrelSignal.parseOverloaded(" 897 "));
+        for (String bad : new String[] {"abc", "15", "898", "-1", "7.5"}) {
+            assertThrows(BarrelSignal.BarrelSignalException.class, () -> BarrelSignal.parseOverloaded(bad));
+        }
+    }
 }

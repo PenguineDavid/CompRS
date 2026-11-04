@@ -141,16 +141,22 @@ public class ModCommands {
 
         COMMAND_HELP.put("barrel", new CommandHelp(
             ",barrel <signal strength>",
-            "Gives you a barrel that makes a comparator read the given signal strength (Creative only).",
+            "Gives comparator barrels for normal or overloaded signal strengths (Creative only).",
             String.join("\n",
                 "Signal strength is a whole number from 1 to 15.",
                 "The barrel is filled with redstone so a comparator reads exactly that strength,",
                 "and is named \"signal <n>\" with an enchantment glint.",
                 "It replaces the item in your selected hotbar slot and requires Creative mode.",
-                "The Barrel panel in the GUI does the same thing.",
+                "For overloaded signals, use ,overloaded <signal> with a whole number from "
+                    + BarrelSignal.OVERLOADED_MIN_SIGNAL + " to " + BarrelSignal.OVERLOADED_MAX_SIGNAL + ".",
+                "Every signal in that range is reachable with a 27-slot barrel.",
+                "The GUI's Barrel panel has the Overloaded signal generator below the normal signal buttons.",
                 "Examples:",
                 "  ,barrel 7",
-                "  ,barrel 15")));
+                "  ,barrel 15",
+                "  ,overloaded 16",
+                "  ,overloaded 543",
+                "  ,overloaded 897")));
 
         COMMAND_HELP.put("comprs_gui", new CommandHelp(
             ",compRS_GUI",
@@ -165,7 +171,8 @@ public class ModCommands {
             "Lists commands, or shows detailed help for one command.",
             String.join("\n",
                 "  ,help          - lists every available command with a short description.",
-                "  ,help <cmd>    - shows full usage, supported syntax, and examples for <cmd>.")));
+                "  ,help <cmd>    - shows full usage, supported syntax, and examples for <cmd>.",
+                "  ,help barrel   - includes the overloaded barrel generator and its signal range.")));
     }
 
     /**
@@ -188,6 +195,7 @@ public class ModCommands {
     public static java.util.List<String> commandNames() {
         java.util.List<String> names = new java.util.ArrayList<>(COMMAND_HELP.keySet());
         names.remove("comprs_gui");
+        names.remove("overloaded");
         return names;
     }
 
@@ -234,6 +242,7 @@ public class ModCommands {
             case "delay" -> computeDelay(rest);
             case "negate" -> computeNegate(rest);
             case "barrel" -> computeBarrel(rest, BarrelGiver::give);
+            case "overloaded" -> computeOverloaded(rest, BarrelGiver::giveOverloaded);
             case "help" -> computeHelp(rest);
             default -> CommandResult.fail("Unknown command '" + commandName + "'");
         };
@@ -275,7 +284,7 @@ public class ModCommands {
 
     private static boolean isKnownCommand(String commandName) {
         return switch (commandName) {
-            case "binary", "conv", "eval", "simplify", "truth", "delay", "negate", "barrel", "help" -> true;
+            case "binary", "conv", "eval", "simplify", "truth", "delay", "negate", "barrel", "overloaded", "help" -> true;
             default -> false;
         };
     }
@@ -526,6 +535,23 @@ public class ModCommands {
         int signal;
         try {
             signal = BarrelSignal.parse(rest[0]);
+        } catch (BarrelSignal.BarrelSignalException e) {
+            return CommandResult.fail(e.getMessage());
+        }
+
+        BarrelGiver.Result given = giver.apply(signal);
+        return given.success() ? CommandResult.ok(given.message()) : CommandResult.fail(given.message());
+    }
+
+    static CommandResult computeOverloaded(String[] rest, IntFunction<BarrelGiver.Result> giver) {
+        if (rest.length != 1) {
+            return CommandResult.fail("Usage: ,overloaded <signal "
+                + BarrelSignal.OVERLOADED_MIN_SIGNAL + "-" + BarrelSignal.OVERLOADED_MAX_SIGNAL + ">");
+        }
+
+        int signal;
+        try {
+            signal = BarrelSignal.parseOverloaded(rest[0]);
         } catch (BarrelSignal.BarrelSignalException e) {
             return CommandResult.fail(e.getMessage());
         }
